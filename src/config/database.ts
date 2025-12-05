@@ -14,7 +14,7 @@ export const AppDataSource = new DataSource({
     database: config.db.name,
     synchronize: true, // Don't use this in production
     logging: false,
-    entities: ['src/models/**/*.ts'],
+    entities: [__dirname + '/../models/**/*.{ts,js}'],
     subscribers: [],
     migrations: [],
 });
