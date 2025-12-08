@@ -1,4 +1,5 @@
 import { Logger } from './logger';
+import { inspect } from 'util';
 
 export function Log() {
     return function (
@@ -10,7 +11,7 @@ export function Log() {
 
         descriptor.value = async function (...args: any[]) {
             const className = target.constructor.name;
-            Logger.info(`[AOP] Entering ${className}.${propertyKey} with args: ${JSON.stringify(args)}`);
+            Logger.info(`[AOP] Entering ${className}.${propertyKey} with args: ${inspect(args, { depth: 1, colors: false })}`);
             const start = Date.now();
 
             try {

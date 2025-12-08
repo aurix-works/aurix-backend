@@ -17,6 +17,9 @@ app.use(helmet());
 app.use(cors());
 app.use(express.json());
 
+// Handle favicon.ico to prevent 404s
+app.get('/favicon.ico', (req, res) => res.status(204).end());
+
 // Swagger Documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
     customCss: '.swagger-ui .topbar { display: none }',
