@@ -15,9 +15,11 @@ async function seed() {
         const roleRepository = AppDataSource.getRepository(Role);
         const userRepository = AppDataSource.getRepository(User);
 
-        await permissionRepository.delete({});
-        await userRepository.delete({});
-        await roleRepository.delete({});
+        // Clear data in correct order to handle foreign keys
+        await AppDataSource.query('DELETE FROM role_permissions');
+        await userRepository.query('DELETE FROM users');
+        await roleRepository.query('DELETE FROM roles');
+        await permissionRepository.query('DELETE FROM permissions');
         Logger.info('Cleared existing data');
 
         const permissions = [

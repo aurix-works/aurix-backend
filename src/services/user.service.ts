@@ -150,7 +150,7 @@ export class UserService {
                 roleName: user.role.name,
             },
             config.jwt.secret,
-            { expiresIn: config.jwt.expiresIn }
+            { expiresIn: config.jwt.expiresIn as any }
         );
 
         return {

@@ -17,7 +17,7 @@ export class User {
     @Column({ unique: true })
     email: string;
 
-    @Column()
+    @Column({ select: false })
     password: string;
 
     @Column()
@@ -32,10 +32,10 @@ export class User {
     @Column({ default: true })
     isActive: boolean;
 
-    @Column({ type: 'uuid' })
+    @Column({ nullable: true })
     roleId: string;
 
-    @ManyToOne(() => Role, (role) => role.users, { eager: true })
+    @ManyToOne(() => Role, (role) => role.users)
     @JoinColumn({ name: 'roleId' })
     role: Role;
 
