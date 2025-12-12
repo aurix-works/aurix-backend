@@ -5,9 +5,9 @@ import swaggerUi from 'swagger-ui-express';
 import { errorHandler } from './middlewares/error.middleware';
 import { HealthController } from './controllers/health.controller';
 import { AppError } from './middlewares/error.middleware';
-import userRoutes from './routes/user.routes';
-import roleRoutes from './routes/role.routes';
-import permissionRoutes from './routes/permission.routes';
+// import userRoutes from './routes/user.routes';
+// import roleRoutes from './routes/role.routes';
+// import permissionRoutes from './routes/permission.routes';
 import { swaggerSpec } from './config/swagger';
 
 const app = express();
@@ -59,9 +59,9 @@ app.get('/api-docs.json', (req, res) => {
 app.get('/health', HealthController.check);
 
 // API Routes
-app.use('/api/users', userRoutes);
-app.use('/api/roles', roleRoutes);
-app.use('/api/permissions', permissionRoutes);
+// app.use('/api/users', userRoutes);
+// app.use('/api/roles', roleRoutes);
+// app.use('/api/permissions', permissionRoutes);
 
 // 404 Handler
 app.all('*', (req, res, next) => {
