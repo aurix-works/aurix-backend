@@ -1,391 +1,205 @@
-# User Management API Documentation
+# API Documentation
 
-## Overview
+## Authentication
+**Base URL:** `/api/auth`
 
-This API provides a comprehensive role-based access control (RBAC) system with flexible permission management for pages and actions.
-
-## Database Schema
-
-### Tables Created
-
-1. **users** - Stores user information
-2. **roles** - Stores role definitions (admin, employee, hr_manager, finance)
-3. **permissions** - Stores permission definitions for pages and actions
-4. **role_permissions** - Junction table linking roles to permissions
-
-## Default Roles
-
-The system comes with 4 pre-configured roles:
-
-### 1. Admin
-- **Full system access** with all permissions
-- Can manage users, roles, and permissions
-
-### 2. HR Manager
-- User management (create, read, update)
-- Employee management
-- Leave approval/rejection
-- Attendance management
-- Access to: Dashboard, Users, Leave, Attendance, Reports pages
-
-### 3. Finance
-- Payroll management (create, read, update, approve)
-- Employee information (read-only)
-- Attendance records (read-only)
-- Access to: Dashboard, Payroll, Reports, Attendance pages
-
-### 4. Employee
-- Own employee information
-- Create and view leave requests
-- Mark and view own attendance
-- Access to: Dashboard, Leave, Attendance pages
-
-## API Endpoints
-
-### Authentication
-
-#### Login
-```
-POST /api/users/login
-Content-Type: application/json
-
-{
-  "email": "admin@example.com",
-  "password": "Admin@123"
-}
-
-Response:
-{
-  "status": "success",
-  "data": {
-    "user": { ...user object with role and permissions... },
-    "token": "jwt-token-here"
+### Login
+- **Endpoint:** `POST /login`
+- **Description:** Authenticate a User and retrieve a JWT token.
+- **Request Body:**
+  ```json
+  {
+    "email": "admin@example.com",
+    "password": "Admin@123"
   }
-}
-```
-
-### User Management
-
-#### Create User
-```
-POST /api/users
-Authorization: Bearer {token}
-Permission Required: user:create
-
-{
-  "email": "john.doe@example.com",
-  "password": "SecurePass123",
-  "firstName": "John",
-  "lastName": "Doe",
-  "phoneNumber": "+1234567890",
-  "roleId": "uuid-of-role"
-}
-```
-
-#### Get All Users
-```
-GET /api/users?page=1&limit=10&roleId=optional-role-filter
-Authorization: Bearer {token}
-Permission Required: user:read
-```
-
-#### Get User by ID
-```
-GET /api/users/:id
-Authorization: Bearer {token}
-Permission Required: user:read
-```
-
-#### Update User
-```
-PUT /api/users/:id
-Authorization: Bearer {token}
-Permission Required: user:update
-
-{
-  "firstName": "Updated Name",
-  "roleId": "new-role-id",
-  "isActive": true
-}
-```
-
-#### Delete User
-```
-DELETE /api/users/:id
-Authorization: Bearer {token}
-Permission Required: user:delete
-```
-
-#### Get My Permissions
-```
-GET /api/users/me/permissions
-Authorization: Bearer {token}
-
-Response:
-{
-  "status": "success",
-  "data": {
-    "permissions": ["user:read", "page:dashboard", ...]
+  ```
+- **Response:**
+  ```json
+  {
+    "status": "success",
+    "token": "jwt_token_here",
+    "user": {
+      "id": 1,
+      "email": "admin@example.com",
+      "name": "System Admin",
+      "isSystemAdmin": true
+    }
   }
-}
-```
+  ```
 
-### Role Management
+---
 
-#### Create Role
-```
-POST /api/roles
-Authorization: Bearer {token}
-Permission Required: role:create
+## System Services
+**Base URL:** `/api/services`
+**Headers:** `Authorization: Bearer <token>`
 
-{
-  "name": "custom_role",
-  "description": "Custom role description",
-  "permissionIds": ["uuid1", "uuid2", ...]
-}
-```
+### Get All Services
+- **Endpoint:** `GET /`
+- **Description:** Retrieve a list of all system services.
+- **Response:**
+  ```json
+  {
+    "status": "success",
+    "data": {
+      "services": [
+        {
+          "id": 1,
+          "name": "User Management",
+          "code": "USER_MGMT",
+          "description": "Manage users and roles"
+        }
+      ]
+    }
+  }
+  ```
 
-#### Get All Roles
-```
-GET /api/roles
-Authorization: Bearer {token}
-Permission Required: role:read
-```
+### Create Service
+- **Endpoint:** `POST /`
+- **Description:** Create a new system service.
+- **Request Body:**
+  ```json
+  {
+    "name": "New Service",
+    "code": "NEW_SVC",
+    "description": "Description of the service"
+  }
+  ```
 
-#### Get Role by ID
-```
-GET /api/roles/:id
-Authorization: Bearer {token}
-Permission Required: role:read
-```
+### Update Service
+- **Endpoint:** `PUT /:id`
+- **Description:** Update an existing service.
+- **Request Body:**
+  ```json
+  {
+    "name": "Updated Service Name"
+  }
+  ```
 
-#### Update Role
-```
-PUT /api/roles/:id
-Authorization: Bearer {token}
-Permission Required: role:update
+### Delete Service
+- **Endpoint:** `DELETE /:id`
+- **Description:** Delete a service.
 
-{
-  "name": "updated_name",
-  "description": "Updated description",
-  "permissionIds": ["new-list-of-permission-ids"],
-  "isActive": true
-}
-```
+---
 
-#### Delete Role
-```
-DELETE /api/roles/:id
-Authorization: Bearer {token}
-Permission Required: role:delete
-```
+## Plans
+**Base URL:** `/api/plans`
+**Headers:** `Authorization: Bearer <token>`
 
-### Permission Management
+### Get All Plans
+- **Endpoint:** `GET /`
+- **Description:** Retrieve all subscription plans.
 
-#### Create Permission
-```
-POST /api/permissions
-Authorization: Bearer {token}
-Permission Required: permission:create
+### Create Plan
+- **Endpoint:** `POST /`
+- **Description:** Create a new plan and link it to services.
+- **Request Body:**
+  ```json
+  {
+    "name": "Pro Plan",
+    "code": "PRO_PLAN",
+    "priceMonthly": 29.99,
+    "priceYearly": 299.99,
+    "serviceIds": [1, 2]
+  }
+  ```
 
-{
-  "name": "custom:action",
-  "resource": "custom_resource",
-  "type": "action",
-  "description": "Custom permission description"
-}
-```
+### Update Plan
+- **Endpoint:** `PUT /:id`
+- **Description:** Update a plan.
 
-Permission types: `"page"` or `"action"`
+### Delete Plan
+- **Endpoint:** `DELETE /:id`
+- **Description:** Delete a plan.
 
-#### Get All Permissions
-```
-GET /api/permissions
-Authorization: Bearer {token}
-Permission Required: permission:read
-```
+---
 
-#### Get Permission by ID
-```
-GET /api/permissions/:id
-Authorization: Bearer {token}
-Permission Required: permission:read
-```
+## Organizations
+**Base URL:** `/api/organizations`
+**Headers:** `Authorization: Bearer <token>`
 
-#### Update Permission
-```
-PUT /api/permissions/:id
-Authorization: Bearer {token}
-Permission Required: permission:update
+### Get All Organizations
+- **Endpoint:** `GET /`
+- **Description:** Retrieve all organizations.
 
-{
-  "name": "updated:name",
-  "isActive": true
-}
-```
+### Create Organization
+- **Endpoint:** `POST /`
+- **Description:** Create a new organization.
+- **Request Body:**
+  ```json
+  {
+    "name": "Acme Corp",
+    "domain": "acme.com"
+  }
+  ```
 
-#### Delete Permission
-```
-DELETE /api/permissions/:id
-Authorization: Bearer {token}
-Permission Required: permission:delete
-```
+### Update Organization
+- **Endpoint:** `PUT /:id`
+- **Description:** Update an organization.
 
-## Permission System
+### Delete Organization
+- **Endpoint:** `DELETE /:id`
+- **Description:** Delete an organization.
 
-### Permission Naming Convention
+---
 
-- **Actions**: `resource:action` (e.g., `user:create`, `payroll:approve`)
-- **Pages**: `page:resource` (e.g., `page:dashboard`, `page:users`)
+## Sub-Organizations
+**Base URL:** `/api/sub-organizations`
+**Headers:** `Authorization: Bearer <token>`
 
-### Available Permissions
+### Get All Sub-Organizations
+- **Endpoint:** `GET /`
+- **Description:** Retrieve all sub-organizations.
 
-#### User Permissions
-- `user:create` - Create new users
-- `user:read` - View users
-- `user:update` - Update users
-- `user:delete` - Delete users
+### Create Sub-Organization
+- **Endpoint:** `POST /`
+- **Description:** Create a new sub-organization under a parent organization.
+- **Request Body:**
+  ```json
+  {
+    "organizationId": 1,
+    "name": "Acme HQ",
+    "contactEmail": "contact@acme.com",
+    "taxId": "US123456",
+    "billingAddress": "123 Main St"
+  }
+  ```
 
-#### Role Permissions
-- `role:create` - Create new roles
-- `role:read` - View roles
-- `role:update` - Update roles
-- `role:delete` - Delete roles
+### Update Sub-Organization
+- **Endpoint:** `PUT /:id`
+- **Description:** Update a sub-organization.
 
-#### Permission Permissions
-- `permission:create` - Create new permissions
-- `permission:read` - View permissions
-- `permission:update` - Update permissions
-- `permission:delete` - Delete permissions
+### Delete Sub-Organization
+- **Endpoint:** `DELETE /:id`
+- **Description:** Delete a sub-organization.
 
-#### Employee Permissions
-- `employee:read` - View employee details
-- `employee:update` - Update employee details
+---
 
-#### Payroll Permissions
-- `payroll:create` - Create payroll
-- `payroll:read` - View payroll
-- `payroll:update` - Update payroll
-- `payroll:approve` - Approve payroll
+## Sub-Organization Subscriptions
+**Base URL:** `/api/subscriptions`
+**Headers:** `Authorization: Bearer <token>`
 
-#### Leave Permissions
-- `leave:create` - Create leave request
-- `leave:read` - View leave requests
-- `leave:approve` - Approve leave requests
-- `leave:reject` - Reject leave requests
+### Get All Subscriptions
+- **Endpoint:** `GET /`
+- **Description:** Retrieve all subscriptions.
 
-#### Attendance Permissions
-- `attendance:create` - Mark attendance
-- `attendance:read` - View attendance
-- `attendance:update` - Update attendance
+### Create Subscription
+- **Endpoint:** `POST /`
+- **Description:** Subscribe a sub-organization to a plan.
+- **Request Body:**
+  ```json
+  {
+    "subOrganizationId": 1,
+    "planId": 1,
+    "startDate": "2024-01-01",
+    "nextBillingDate": "2024-02-01",
+    "status": "active"
+  }
+  ```
 
-#### Page Permissions
-- `page:dashboard` - Access dashboard page
-- `page:users` - Access users page
-- `page:roles` - Access roles page
-- `page:reports` - Access reports page
-- `page:settings` - Access settings page
-- `page:payroll` - Access payroll page
-- `page:attendance` - Access attendance page
-- `page:leave` - Access leave management page
+### Update Subscription
+- **Endpoint:** `PUT /:id`
+- **Description:** Update a subscription (e.g., change plan or status).
 
-## Using Permission Middleware
-
-### In Your Routes
-
-```typescript
-import { requirePermission, requireRole, requireAllPermissions } from '../middlewares/permission.middleware';
-
-// Require any ONE of the specified permissions
-router.get('/data', protect, requirePermission('data:read', 'admin:all'), controller.getData);
-
-// Require ALL specified permissions
-router.post('/sensitive', protect, requireAllPermissions('data:create', 'data:sensitive'), controller.create);
-
-// Require specific role
-router.get('/admin-only', protect, requireRole('admin'), controller.adminOnly);
-```
-
-## Setup Instructions
-
-### 1. Install Dependencies
-```bash
-npm install
-```
-
-### 2. Configure Database
-Create a `.env` file with your database configuration:
-```
-DB_HOST=localhost
-DB_PORT=3306
-DB_USERNAME=root
-DB_PASSWORD=your_password
-DB_NAME=enterprise_db
-
-JWT_SECRET=your-super-secret-jwt-key
-JWT_EXPIRES_IN=1d
-```
-
-### 3. Run Database Seed
-This will create all permissions, roles, and a default admin user:
-```bash
-npm run seed
-```
-
-Default admin credentials:
-- Email: `admin@example.com`
-- Password: `Admin@123`
-
-### 4. Start the Server
-```bash
-npm run dev
-```
-
-## Admin Panel Integration
-
-The permission system is designed to be easily integrated with an admin panel:
-
-1. **Fetch Available Permissions**: `GET /api/permissions`
-2. **Create Custom Roles**: Assign any combination of permissions to roles
-3. **Assign Roles to Users**: Update user's `roleId` to change their permissions
-4. **Dynamic UI**: Use the `GET /api/users/me/permissions` endpoint to show/hide UI elements based on user permissions
-
-### Frontend Permission Checking
-
-```javascript
-// Get user permissions on login
-const { data } = await api.get('/api/users/me/permissions');
-const userPermissions = data.data.permissions;
-
-// Check if user can access a page
-const canAccessUsers = userPermissions.includes('page:users');
-
-// Check if user can perform an action
-const canCreateUser = userPermissions.includes('user:create');
-```
-
-## Error Responses
-
-All endpoints return errors in this format:
-```json
-{
-  "status": "error",
-  "message": "Error description",
-  "statusCode": 400
-}
-```
-
-Common status codes:
-- 400: Bad Request
-- 401: Unauthorized (not logged in)
-- 403: Forbidden (insufficient permissions)
-- 404: Not Found
-- 500: Internal Server Error
-
-## Security Features
-
-1. **Password Hashing**: All passwords are hashed using bcrypt with salt rounds of 12
-2. **JWT Authentication**: Secure token-based authentication
-3. **Permission-based Access Control**: Granular control over actions and pages
-4. **Role-based Assignment**: Easy management through roles
-5. **Active Status**: Users and permissions can be deactivated without deletion
+### Delete Subscription
+- **Endpoint:** `DELETE /:id`
+- **Description:** Cancel/Delete a subscription.
