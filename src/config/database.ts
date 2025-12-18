@@ -12,7 +12,7 @@ export const AppDataSource = new DataSource({
     username: config.db.username,
     password: config.db.password,
     database: config.db.name,
-    synchronize: true, // Don't use this in production
+    synchronize: false, // Don't use this in production
     logging: false,
     entities: [__dirname + '/../models/**/*.{ts,js}'],
     subscribers: [],

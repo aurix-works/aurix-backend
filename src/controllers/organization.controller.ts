@@ -2,6 +2,8 @@ import { Request, Response, NextFunction } from 'express';
 import { AppDataSource } from '../config/database';
 import { Organization } from '../models/Organization';
 import { AppError } from '../middlewares/error.middleware';
+import { ERROR_MESSAGES } from '../constants/messages';
+import { HTTP_STATUS } from '../constants/http';
 import { Log } from '../utils/aop';
 
 export class OrganizationController {
@@ -10,7 +12,7 @@ export class OrganizationController {
         try {
             const repo = AppDataSource.getRepository(Organization);
             const organizations = await repo.find();
-            res.status(200).json({ status: 'success', data: { organizations } });
+            res.status(HTTP_STATUS.OK).json({ status: 'success', data: { organizations } });
         } catch (error) {
             next(error);
         }
@@ -22,7 +24,7 @@ export class OrganizationController {
             const repo = AppDataSource.getRepository(Organization);
             const organization = repo.create(req.body);
             await repo.save(organization);
-            res.status(201).json({ status: 'success', data: { organization } });
+            res.status(HTTP_STATUS.CREATED).json({ status: 'success', data: { organization } });
         } catch (error) {
             next(error);
         }
@@ -34,11 +36,11 @@ export class OrganizationController {
             const repo = AppDataSource.getRepository(Organization);
             const { id } = req.params;
             let organization = await repo.findOneBy({ id: parseInt(id) });
-            if (!organization) return next(new AppError('Organization not found', 404));
+            if (!organization) return next(new AppError(ERROR_MESSAGES.RESOURCE.NOT_FOUND('Organization'), HTTP_STATUS.NOT_FOUND));
 
             repo.merge(organization, req.body);
             const result = await repo.save(organization);
-            res.status(200).json({ status: 'success', data: { organization: result } });
+            res.status(HTTP_STATUS.OK).json({ status: 'success', data: { organization: result } });
         } catch (error) {
             next(error);
         }
@@ -50,8 +52,8 @@ export class OrganizationController {
             const repo = AppDataSource.getRepository(Organization);
             const { id } = req.params;
             const result = await repo.delete(id);
-            if (result.affected === 0) return next(new AppError('Organization not found', 404));
-            res.status(204).json({ status: 'success', data: null });
+            if (result.affected === 0) return next(new AppError(ERROR_MESSAGES.RESOURCE.NOT_FOUND('Organization'), HTTP_STATUS.NOT_FOUND));
+            res.status(HTTP_STATUS.NO_CONTENT).json({ status: 'success', data: null });
         } catch (error) {
             next(error);
         }

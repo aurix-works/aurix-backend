@@ -5,15 +5,22 @@ import swaggerUi from 'swagger-ui-express';
 import { errorHandler } from './middlewares/error.middleware';
 import { HealthController } from './controllers/health.controller';
 import { AppError } from './middlewares/error.middleware';
+import { ERROR_MESSAGES } from './constants/messages';
+import { HTTP_STATUS } from './constants/http';
 import authRoutes from './routes/auth.routes';
 import systemServiceRoutes from './routes/system-service.routes';
 import planRoutes from './routes/plan.routes';
 import organizationRoutes from './routes/organization.routes';
 import subOrganizationRoutes from './routes/sub-organization.routes';
 import subOrgSubscriptionRoutes from './routes/sub-org-subscription.routes';
-// import userRoutes from './routes/user.routes';
-// import roleRoutes from './routes/role.routes';
-// import permissionRoutes from './routes/permission.routes';
+import departmentRoutes from './routes/department.routes';
+import userRoutes from './routes/user.routes';
+import roleRoutes from './routes/role.routes';
+import permissionRoutes from './routes/permission.routes';
+
+// ...
+
+
 import { swaggerSpec } from './config/swagger';
 
 const app = express();
@@ -71,13 +78,17 @@ app.use('/api/plans', planRoutes);
 app.use('/api/organizations', organizationRoutes);
 app.use('/api/sub-organizations', subOrganizationRoutes);
 app.use('/api/subscriptions', subOrgSubscriptionRoutes);
+app.use('/api/departments', departmentRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/roles', roleRoutes);
+app.use('/api/permissions', permissionRoutes);
 // app.use('/api/users', userRoutes);
 // app.use('/api/roles', roleRoutes);
 // app.use('/api/permissions', permissionRoutes);
 
 // 404 Handler
 app.all('*', (req, res, next) => {
-    next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
+    next(new AppError(ERROR_MESSAGES.SERVER.ROUTE_NOT_FOUND(req.originalUrl), HTTP_STATUS.NOT_FOUND));
 });
 
 // Global Error Handler

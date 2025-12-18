@@ -1,7 +1,7 @@
 import request from 'supertest';
 import app from '../app';
 import { AppDataSource } from '../config/database';
-import { User } from '../models/User';
+import { SystemUser } from '../models/SystemUser';
 
 describe('SaaS Infrastructure API', () => {
     let adminToken: string;
@@ -12,7 +12,7 @@ describe('SaaS Infrastructure API', () => {
 
     beforeAll(async () => {
         // Ensure admin exists and get token
-        const userRepo = AppDataSource.getRepository(User);
+        const userRepo = AppDataSource.getRepository(SystemUser);
         let admin = await userRepo.findOneBy({ email: 'admin@example.com' });
         if (!admin) {
             admin = userRepo.create({

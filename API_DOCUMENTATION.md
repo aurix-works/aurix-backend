@@ -203,3 +203,91 @@
 ### Delete Subscription
 - **Endpoint:** `DELETE /:id`
 - **Description:** Cancel/Delete a subscription.
+
+---
+
+## Departments
+**Base URL:** `/api/departments`
+**Headers:** `Authorization: Bearer <token>`
+
+### Get All Departments
+- **Endpoint:** `GET /`
+- **Description:** Retrieve all departments.
+
+### Create Department
+- **Endpoint:** `POST /`
+- **Description:** Create a new department.
+
+### Update Department
+- **Endpoint:** `PUT /:id`
+- **Description:** Update a department.
+
+### Delete Department
+- **Endpoint:** `DELETE /:id`
+- **Description:** Delete a department.
+
+---
+
+## Users (Tenant)
+**Base URL:** `/api/users`
+**Headers:** `Authorization: Bearer <token>`
+
+### Get All Users
+- **Endpoint:** `GET /`
+- **Description:** Retrieve all tenant users.
+
+### Create User
+- **Endpoint:** `POST /`
+- **Description:** Create a new tenant user.
+
+### Update User
+- **Endpoint:** `PUT /:id`
+- **Description:** Update a tenant user.
+
+### Delete User
+- **Endpoint:** `DELETE /:id`
+- **Description:** Delete a tenant user.
+
+---
+
+## Roles
+**Base URL:** `/api/roles`
+**Headers:** `Authorization: Bearer <token>`
+
+### Get All Roles
+- **Endpoint:** `GET /`
+- **Description:** Retrieve all roles.
+
+### Create Role
+- **Endpoint:** `POST /`
+- **Description:** Create a new role.
+
+### Update Role
+- **Endpoint:** `PUT /:id`
+- **Description:** Update a role.
+
+### Delete Role
+- **Endpoint:** `DELETE /:id`
+- **Description:** Delete a role.
+
+---
+
+## Permissions
+**Base URL:** `/api/permissions`
+**Headers:** `Authorization: Bearer <token>`
+
+### Get All Permissions
+- **Endpoint:** `GET /`
+- **Description:** Retrieve all permissions.
+
+### Create Permission
+- **Endpoint:** `POST /`
+- **Description:** Create a new permission.
+
+### Update Permission
+- **Endpoint:** `PUT /:id`
+- **Description:** Update a permission.
+
+### Delete Permission
+- **Endpoint:** `DELETE /:id`
+- **Description:** Delete a permission.

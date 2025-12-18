@@ -110,6 +110,41 @@ const options: swaggerJsdoc.Options = {
                         },
                     },
                 },
+                Department: {
+                    type: 'object',
+                    properties: {
+                        id: { type: 'integer' },
+                        name: { type: 'string' },
+                        code: { type: 'string' },
+                        subOrganizationId: { type: 'integer' },
+                    },
+                },
+                User: {
+                    type: 'object',
+                    properties: {
+                        id: { type: 'integer' },
+                        email: { type: 'string' },
+                        firstName: { type: 'string' },
+                        lastName: { type: 'string' },
+                        subOrganizationId: { type: 'integer' },
+                    },
+                },
+                Role: {
+                    type: 'object',
+                    properties: {
+                        id: { type: 'integer' },
+                        name: { type: 'string' },
+                        description: { type: 'string' },
+                    },
+                },
+                Permission: {
+                    type: 'object',
+                    properties: {
+                        id: { type: 'integer' },
+                        slug: { type: 'string' },
+                        description: { type: 'string' },
+                    },
+                },
             },
         },
         tags: [
@@ -120,6 +155,10 @@ const options: swaggerJsdoc.Options = {
             { name: 'Organizations', description: 'Manage organizations' },
             { name: 'Sub-Organizations', description: 'Manage sub-organizations' },
             { name: 'Subscriptions', description: 'Manage subscriptions' },
+            { name: 'Departments', description: 'Manage departments' },
+            { name: 'Users', description: 'Manage tenant users' },
+            { name: 'Roles', description: 'Manage roles' },
+            { name: 'Permissions', description: 'Manage permissions' },
         ],
     },
     apis: ['./src/routes/*.ts', './src/controllers/*.ts'],

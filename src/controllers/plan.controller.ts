@@ -3,6 +3,8 @@ import { AppDataSource } from '../config/database';
 import { Plan } from '../models/Plan';
 import { SystemService } from '../models/SystemService';
 import { AppError } from '../middlewares/error.middleware';
+import { ERROR_MESSAGES } from '../constants/messages';
+import { HTTP_STATUS } from '../constants/http';
 import { Log } from '../utils/aop';
 import { In } from 'typeorm';
 
@@ -12,7 +14,7 @@ export class PlanController {
         try {
             const repo = AppDataSource.getRepository(Plan);
             const plans = await repo.find({ relations: ['services'] });
-            res.status(200).json({ status: 'success', data: { plans } });
+            res.status(HTTP_STATUS.OK).json({ status: 'success', data: { plans } });
         } catch (error) {
             next(error);
         }
@@ -33,7 +35,7 @@ export class PlanController {
             }
 
             await planRepo.save(plan);
-            res.status(201).json({ status: 'success', data: { plan } });
+            res.status(HTTP_STATUS.CREATED).json({ status: 'success', data: { plan } });
         } catch (error) {
             next(error);
         }
@@ -47,7 +49,7 @@ export class PlanController {
             const planRepo = AppDataSource.getRepository(Plan);
 
             let plan = await planRepo.findOne({ where: { id: parseInt(id) }, relations: ['services'] });
-            if (!plan) return next(new AppError('Plan not found', 404));
+            if (!plan) return next(new AppError(ERROR_MESSAGES.RESOURCE.NOT_FOUND('Plan'), HTTP_STATUS.NOT_FOUND));
 
             planRepo.merge(plan, planData);
 
@@ -58,7 +60,7 @@ export class PlanController {
             }
 
             const result = await planRepo.save(plan);
-            res.status(200).json({ status: 'success', data: { plan: result } });
+            res.status(HTTP_STATUS.OK).json({ status: 'success', data: { plan: result } });
         } catch (error) {
             next(error);
         }
@@ -70,8 +72,8 @@ export class PlanController {
             const repo = AppDataSource.getRepository(Plan);
             const { id } = req.params;
             const result = await repo.delete(id);
-            if (result.affected === 0) return next(new AppError('Plan not found', 404));
-            res.status(204).json({ status: 'success', data: null });
+            if (result.affected === 0) return next(new AppError(ERROR_MESSAGES.RESOURCE.NOT_FOUND('Plan'), HTTP_STATUS.NOT_FOUND));
+            res.status(HTTP_STATUS.NO_CONTENT).json({ status: 'success', data: null });
         } catch (error) {
             next(error);
         }

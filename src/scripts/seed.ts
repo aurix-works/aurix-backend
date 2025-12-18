@@ -1,20 +1,25 @@
 import 'reflect-metadata';
 import { AppDataSource } from '../config/database';
 import { Logger } from '../utils/logger';
-import { User } from '../models/User';
+import { SystemUser } from '../models/SystemUser';
 import { SystemService } from '../models/SystemService';
 import { Plan } from '../models/Plan';
 import { Organization } from '../models/Organization';
 import { SubOrganization, AccountStatus } from '../models/SubOrganization';
 import { SubOrgSubscription, SubscriptionStatus } from '../models/SubOrgSubscription';
+import { Department } from '../models/Department';
+import { User } from '../models/User';
+import { Role } from '../models/Role';
+import { Permission } from '../models/Permission';
 
 async function seed() {
     try {
         await AppDataSource.initialize();
+        await AppDataSource.synchronize();
         Logger.info('Database connected for seeding');
 
         // 1. Create System Admin
-        const userRepo = AppDataSource.getRepository(User);
+        const userRepo = AppDataSource.getRepository(SystemUser);
         const adminEmail = 'admin@example.com';
         let admin = await userRepo.findOneBy({ email: adminEmail });
 
@@ -91,6 +96,72 @@ async function seed() {
             await subOrgRepo.save(subOrg);
             Logger.info(`Created Sub-Organization: ${subOrgName}`);
         }
+
+        // 6. Create Departments
+        const deptRepo = AppDataSource.getRepository(Department);
+        const deptName = 'Engineering';
+        let dept = await deptRepo.findOneBy({ name: deptName, subOrganizationId: subOrg.id });
+        if (!dept) {
+            dept = deptRepo.create({
+                subOrganization: subOrg,
+                subOrganizationId: subOrg.id,
+                name: deptName,
+                code: 'ENG',
+            });
+            await deptRepo.save(dept);
+            Logger.info(`Created Department: ${deptName}`);
+        }
+
+        // 7. Create Permissions
+        const permRepo = AppDataSource.getRepository(Permission);
+        const permSlug = 'manage_users';
+        let perm = await permRepo.findOneBy({ slug: permSlug });
+        if (!perm) {
+            perm = permRepo.create({
+                slug: permSlug,
+                description: 'Can manage users',
+            });
+            await permRepo.save(perm);
+            Logger.info(`Created Permission: ${permSlug}`);
+        }
+
+        // 8. Create Roles
+        const roleRepo = AppDataSource.getRepository(Role);
+        const roleName = 'Manager';
+        let role = await roleRepo.findOne({ where: { name: roleName, subOrganizationId: subOrg.id } });
+        if (!role) {
+            role = roleRepo.create({
+                subOrganization: subOrg,
+                subOrganizationId: subOrg.id,
+                name: roleName,
+                description: 'Department Manager',
+                permissions: [perm],
+            });
+            await roleRepo.save(role);
+            Logger.info(`Created Role: ${roleName}`);
+        }
+
+        // 9. Create Tenant User
+        const tenantUserRepo = AppDataSource.getRepository(User);
+        const tenantEmail = 'employee@acme.com';
+        let tenantUser = await tenantUserRepo.findOneBy({ email: tenantEmail, subOrganizationId: subOrg.id });
+        if (!tenantUser) {
+            tenantUser = tenantUserRepo.create({
+                subOrganization: subOrg,
+                subOrganizationId: subOrg.id,
+                email: tenantEmail,
+                password: 'Employee@123',
+                firstName: 'John',
+                lastName: 'Doe',
+                employeeCode: 'E001',
+                designation: 'Software Engineer',
+                roles: [role],
+            });
+            await tenantUserRepo.save(tenantUser);
+            Logger.info(`Created Tenant User: ${tenantEmail} / Employee@123`);
+        }
+
+
 
         Logger.info('Seeding completed successfully');
         process.exit(0);

@@ -2,12 +2,13 @@ import 'reflect-metadata';
 import app from './app';
 import { config } from './config';
 import { Logger } from './utils/logger';
-import { connectMySQL, connectMongoDB } from './config/database';
+import { connectMySQL, connectMongoDB, AppDataSource } from './config/database';
 
 const startServer = async () => {
     try {
         // Connect to Databases
         await connectMySQL();
+        await AppDataSource.synchronize();
         await connectMongoDB();
         // Redis connects automatically on import
 

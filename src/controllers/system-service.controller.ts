@@ -2,6 +2,8 @@ import { Request, Response, NextFunction } from 'express';
 import { AppDataSource } from '../config/database';
 import { SystemService } from '../models/SystemService';
 import { AppError } from '../middlewares/error.middleware';
+import { ERROR_MESSAGES } from '../constants/messages';
+import { HTTP_STATUS } from '../constants/http';
 import { Log } from '../utils/aop';
 
 export class SystemServiceController {
@@ -10,7 +12,7 @@ export class SystemServiceController {
         try {
             const repo = AppDataSource.getRepository(SystemService);
             const services = await repo.find();
-            res.status(200).json({ status: 'success', data: { services } });
+            res.status(HTTP_STATUS.OK).json({ status: 'success', data: { services } });
         } catch (error) {
             next(error);
         }
@@ -22,7 +24,7 @@ export class SystemServiceController {
             const repo = AppDataSource.getRepository(SystemService);
             const service = repo.create(req.body);
             await repo.save(service);
-            res.status(201).json({ status: 'success', data: { service } });
+            res.status(HTTP_STATUS.CREATED).json({ status: 'success', data: { service } });
         } catch (error) {
             next(error);
         }
@@ -34,11 +36,11 @@ export class SystemServiceController {
             const repo = AppDataSource.getRepository(SystemService);
             const { id } = req.params;
             let service = await repo.findOneBy({ id: parseInt(id) });
-            if (!service) return next(new AppError('Service not found', 404));
+            if (!service) return next(new AppError(ERROR_MESSAGES.RESOURCE.NOT_FOUND('Service'), HTTP_STATUS.NOT_FOUND));
 
             repo.merge(service, req.body);
             const result = await repo.save(service);
-            res.status(200).json({ status: 'success', data: { service: result } });
+            res.status(HTTP_STATUS.OK).json({ status: 'success', data: { service: result } });
         } catch (error) {
             next(error);
         }
@@ -50,8 +52,8 @@ export class SystemServiceController {
             const repo = AppDataSource.getRepository(SystemService);
             const { id } = req.params;
             const result = await repo.delete(id);
-            if (result.affected === 0) return next(new AppError('Service not found', 404));
-            res.status(204).json({ status: 'success', data: null });
+            if (result.affected === 0) return next(new AppError(ERROR_MESSAGES.RESOURCE.NOT_FOUND('Service'), HTTP_STATUS.NOT_FOUND));
+            res.status(HTTP_STATUS.NO_CONTENT).json({ status: 'success', data: null });
         } catch (error) {
             next(error);
         }
