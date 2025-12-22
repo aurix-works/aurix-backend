@@ -56,10 +56,43 @@ describe('SaaS Infrastructure API', () => {
             expect(res.status).toBe(200);
             expect(Array.isArray(res.body.data.services)).toBe(true);
         });
+
+        it('should update a service', async () => {
+            const res = await request(app)
+                .put(`/api/services/${serviceId}`)
+                .set('Authorization', `Bearer ${adminToken}`)
+                .send({ name: 'Updated Service' });
+            expect(res.status).toBe(200);
+            expect(res.body.data.service.name).toBe('Updated Service');
+        });
+
+        it('should delete a service', async () => {
+            const res = await request(app)
+                .delete(`/api/services/${serviceId}`)
+                .set('Authorization', `Bearer ${adminToken}`);
+            expect(res.status).toBe(204);
+        });
+
+        it('should return 404 when updating non-existent service', async () => {
+            const res = await request(app)
+                .put('/api/services/99999')
+                .set('Authorization', `Bearer ${adminToken}`)
+                .send({ name: 'Ghost Service' });
+            expect(res.status).toBe(404);
+        });
     });
 
     // 2. Plans Tests
     describe('Plans', () => {
+        // Re-create service for plan tests since it was deleted
+        beforeAll(async () => {
+            const res = await request(app)
+                .post('/api/services')
+                .set('Authorization', `Bearer ${adminToken}`)
+                .send({ name: 'Plan Service', code: 'PLAN_SVC', description: 'Desc' });
+            serviceId = res.body.data.service.id;
+        });
+
         it('should create a new plan', async () => {
             const res = await request(app)
                 .post('/api/plans')
@@ -74,6 +107,37 @@ describe('SaaS Infrastructure API', () => {
             expect(res.status).toBe(201);
             expect(res.body.data.plan.code).toBe('TEST_PLAN');
             planId = res.body.data.plan.id;
+        });
+
+        it('should get all plans', async () => {
+            const res = await request(app)
+                .get('/api/plans')
+                .set('Authorization', `Bearer ${adminToken}`);
+            expect(res.status).toBe(200);
+        });
+
+        it('should update a plan', async () => {
+            const res = await request(app)
+                .put(`/api/plans/${planId}`)
+                .set('Authorization', `Bearer ${adminToken}`)
+                .send({ name: 'Updated Plan', priceMonthly: 20 });
+            expect(res.status).toBe(200);
+            expect(res.body.data.plan.priceMonthly).toBe(20);
+        });
+
+        it('should delete a plan', async () => {
+            const res = await request(app)
+                .delete(`/api/plans/${planId}`)
+                .set('Authorization', `Bearer ${adminToken}`);
+            expect(res.status).toBe(204);
+        });
+
+        it('should return 404 when updating non-existent plan', async () => {
+            const res = await request(app)
+                .put('/api/plans/99999')
+                .set('Authorization', `Bearer ${adminToken}`)
+                .send({ name: 'Ghost Plan' });
+            expect(res.status).toBe(404);
         });
     });
 
@@ -90,6 +154,16 @@ describe('SaaS Infrastructure API', () => {
             expect(res.status).toBe(201);
             orgId = res.body.data.organization.id;
         });
+
+        it('should update an organization', async () => {
+            const res = await request(app)
+                .put(`/api/organizations/${orgId}`)
+                .set('Authorization', `Bearer ${adminToken}`)
+                .send({ name: 'Updated Org' });
+            expect(res.status).toBe(200);
+        });
+
+        // Note: We don't delete org here because sub-org tests depend on it
     });
 
     // 4. Sub-Organizations Tests
@@ -106,10 +180,75 @@ describe('SaaS Infrastructure API', () => {
             expect(res.status).toBe(201);
             subOrgId = res.body.data.subOrganization.id;
         });
+
+        it('should get all sub-organizations', async () => {
+            const res = await request(app)
+                .get('/api/sub-organizations')
+                .set('Authorization', `Bearer ${adminToken}`);
+            expect(res.status).toBe(200);
+        });
+
+        it('should update a sub-organization', async () => {
+            const res = await request(app)
+                .put(`/api/sub-organizations/${subOrgId}`)
+                .set('Authorization', `Bearer ${adminToken}`)
+                .send({ name: 'Updated Sub Org' });
+            expect(res.status).toBe(200);
+        });
+
+        it('should return 404 when updating non-existent sub-organization', async () => {
+            const res = await request(app)
+                .put('/api/sub-organizations/99999')
+                .set('Authorization', `Bearer ${adminToken}`)
+                .send({ name: 'Ghost Sub Org' });
+            expect(res.status).toBe(404);
+        });
+
+        it('should delete a sub-organization', async () => {
+            // Create a temp sub-org to delete
+            const resCreate = await request(app)
+                .post('/api/sub-organizations')
+                .set('Authorization', `Bearer ${adminToken}`)
+                .send({
+                    organizationId: orgId,
+                    name: 'Temp Sub Org',
+                    contactEmail: 'temp@test.com',
+                });
+            const tempId = resCreate.body.data.subOrganization.id;
+
+            const res = await request(app)
+                .delete(`/api/sub-organizations/${tempId}`)
+                .set('Authorization', `Bearer ${adminToken}`);
+            expect(res.status).toBe(204);
+        });
+
+        it('should return 404 when deleting non-existent sub-organization', async () => {
+            const res = await request(app)
+                .delete('/api/sub-organizations/99999')
+                .set('Authorization', `Bearer ${adminToken}`);
+            expect(res.status).toBe(404);
+        });
     });
 
     // 5. Subscriptions Tests
     describe('Subscriptions', () => {
+        let subscriptionId: number;
+
+        // Re-create plan for subscription tests
+        beforeAll(async () => {
+            const res = await request(app)
+                .post('/api/plans')
+                .set('Authorization', `Bearer ${adminToken}`)
+                .send({
+                    name: 'Sub Plan',
+                    code: 'SUB_PLAN',
+                    priceMonthly: 10,
+                    priceYearly: 100,
+                    serviceIds: [serviceId],
+                });
+            planId = res.body.data.plan.id;
+        });
+
         it('should create a new subscription', async () => {
             const res = await request(app)
                 .post('/api/subscriptions')
@@ -122,6 +261,44 @@ describe('SaaS Infrastructure API', () => {
                     status: 'active',
                 });
             expect(res.status).toBe(201);
+            subscriptionId = res.body.data.subscription.id;
+        });
+
+        it('should get all subscriptions', async () => {
+            const res = await request(app)
+                .get('/api/subscriptions')
+                .set('Authorization', `Bearer ${adminToken}`);
+            expect(res.status).toBe(200);
+        });
+
+        it('should update a subscription', async () => {
+            const res = await request(app)
+                .put(`/api/subscriptions/${subscriptionId}`)
+                .set('Authorization', `Bearer ${adminToken}`)
+                .send({ status: 'cancelled' });
+            expect(res.status).toBe(200);
+        });
+
+        it('should delete a subscription', async () => {
+            const res = await request(app)
+                .delete(`/api/subscriptions/${subscriptionId}`)
+                .set('Authorization', `Bearer ${adminToken}`);
+            expect(res.status).toBe(204);
+        });
+
+        it('should return 404 when updating non-existent subscription', async () => {
+            const res = await request(app)
+                .put('/api/subscriptions/99999')
+                .set('Authorization', `Bearer ${adminToken}`)
+                .send({ status: 'active' });
+            expect(res.status).toBe(404);
+        });
+
+        it('should return 404 when deleting non-existent subscription', async () => {
+            const res = await request(app)
+                .delete('/api/subscriptions/99999')
+                .set('Authorization', `Bearer ${adminToken}`);
+            expect(res.status).toBe(404);
         });
     });
 });

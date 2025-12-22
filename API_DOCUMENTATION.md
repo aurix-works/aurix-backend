@@ -291,3 +291,72 @@
 ### Delete Permission
 - **Endpoint:** `DELETE /:id`
 - **Description:** Delete a permission.
+
+---
+
+## Leave Management
+**Base URL:** `/api/leave`
+**Headers:** `Authorization: Bearer <token>`
+
+### Create Leave Type (Admin)
+- **Endpoint:** `POST /leave-types`
+- **Description:** Create a new leave type.
+- **Request Body:**
+  ```json
+  {
+    "name": "Sick Leave",
+    "code": "SL",
+    "isCarryForward": true
+  }
+  ```
+
+### Create Workflow (Admin)
+- **Endpoint:** `POST /workflows`
+- **Description:** Create a new leave workflow.
+- **Request Body:**
+  ```json
+  {
+    "name": "Standard Workflow",
+    "description": "Manager -> HR",
+    "steps": [
+      { "stepOrder": 1, "approverRoleId": 2 },
+      { "stepOrder": 2, "approverRoleId": 3 }
+    ]
+  }
+  ```
+
+### Get Leave Types (Employee)
+- **Endpoint:** `GET /leave-types`
+- **Description:** Get all available leave types.
+
+### Apply for Leave (Employee)
+- **Endpoint:** `POST /apply`
+- **Description:** Submit a leave request.
+- **Request Body:**
+  ```json
+  {
+    "leaveTypeId": 1,
+    "startDate": "2024-03-01",
+    "endDate": "2024-03-03",
+    "reason": "Sick leave"
+  }
+  ```
+
+### Get My Requests (Employee)
+- **Endpoint:** `GET /requests`
+- **Description:** Get list of my leave requests.
+
+### Get Pending Approvals (Approver)
+- **Endpoint:** `GET /approvals`
+- **Description:** Get list of requests pending my approval.
+
+### Approve/Reject Request (Approver)
+- **Endpoint:** `POST /approve/:requestId`
+- **Description:** Approve or reject a leave request.
+- **Request Body:**
+  ```json
+  {
+    "status": "approved",
+    "comments": "Get well soon"
+  }
+  ```

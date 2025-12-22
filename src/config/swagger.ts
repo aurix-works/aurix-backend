@@ -145,6 +145,27 @@ const options: swaggerJsdoc.Options = {
                         description: { type: 'string' },
                     },
                 },
+                LeaveType: {
+                    type: 'object',
+                    properties: {
+                        id: { type: 'integer' },
+                        name: { type: 'string' },
+                        code: { type: 'string' },
+                        isCarryForward: { type: 'boolean' },
+                    },
+                },
+                LeaveRequest: {
+                    type: 'object',
+                    properties: {
+                        id: { type: 'integer' },
+                        userId: { type: 'integer' },
+                        leaveTypeId: { type: 'integer' },
+                        startDate: { type: 'string', format: 'date-time' },
+                        endDate: { type: 'string', format: 'date-time' },
+                        reason: { type: 'string' },
+                        currentStatus: { type: 'string', enum: ['pending', 'approved', 'rejected'] },
+                    },
+                },
             },
         },
         tags: [
@@ -159,6 +180,7 @@ const options: swaggerJsdoc.Options = {
             { name: 'Users', description: 'Manage tenant users' },
             { name: 'Roles', description: 'Manage roles' },
             { name: 'Permissions', description: 'Manage permissions' },
+            { name: 'Leave Management', description: 'Manage leave types, workflows, and requests' },
         ],
     },
     apis: ['./src/routes/*.ts', './src/controllers/*.ts'],
